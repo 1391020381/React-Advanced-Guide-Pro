@@ -1,4 +1,4 @@
-import React, { memo, useState } from 'react'
+import React, { memo, useState,useEffect } from 'react'
 
 import { Provider, connect } from 'react-redux'
 import { createStore, applyMiddleware, combineReducers } from 'redux'
@@ -19,11 +19,15 @@ function numberReducer(state = 1, action) {
 /* 用户信息reducer */
 function InfoReducer(state = {}, action) {
   const { payload = {} } = action
+  console.log('InfoReducer:',{
+    ...state,
+    ...payload // 被赋值到 state.info 上
+  })
   switch (action.type) {
     case 'SET':
       return {
         ...state,
-        payload:payload
+        ...payload // 被赋值到 state.info 上
       }
     default:
       return state
@@ -52,19 +56,20 @@ const Store = createStore(rootReducer, { number: 1, info: { name: null } }, root
 
 
 // function Index(){
-//   const [ state , changeState  ] :any= useState(Store.getState())
+//   const [ state , changeState  ] = useState(Store.getState())
 //   useEffect(()=>{
 //     /* 订阅state */
 //     const unSubscribe = Store.subscribe(()=>{
+//         console.log('Store.getState():',Store.getState())
 //          changeState(Store.getState())
 //      })
 //     /* 解除订阅 */
 //      return () => unSubscribe()
 //   },[])
 //   return <div >
-//           <p>  { state.info.name ? `hello, my name is ${ state.info.name}` : 'what is your name' } ,
-//            { state.info.mes ? state.info.mes  : ' what do you say? '  } </p>
-//          《React进阶实践指南》 { state.number } 👍 <br/>
+//           <p>  {state.info.name ? `hello, my name is ${ state.info.name}` : 'what is your name'} ,
+//            {state.info.mes ? state.info.mes  : ' what do you say? '} </p>
+//          《React进阶实践指南》 {state.number} 👍 <br/>
 //         <button onClick={()=>{ Store.dispatch({ type:'ADD' })  }} >点赞</button>
 //         <button onClick={()=>{ Store.dispatch({ type:'SET',payload:{ name:'alien' , mes:'let us learn React!'  } }) }} >修改标题</button>
 //      </div>
@@ -72,11 +77,11 @@ const Store = createStore(rootReducer, { number: 1, info: { name: null } }, root
 // import Children from './page/home/index'
 
 /* A组件 */
-function ComponentA({ toCompB, info }) {
+function ComponentA({ toCompB, compBsay }) {
   const [CompAsay, setCompAsay] = useState('')
   return <div className="box" >
     <p>我是组件A</p>
-    <div> B组件对我说：{info} </div>
+    <div> B组件对我说：{compBsay} </div>
         我对B组件说：<input onChange={(e) => setCompAsay(e.target.value)}
             placeholder="CompAsay"
                />
@@ -84,7 +89,7 @@ function ComponentA({ toCompB, info }) {
   </div>
 }
 /* 映射state中CompBsay  */
-const CompAMapStateToProps = state => state.info
+const CompAMapStateToProps = state => ({compBsay:state.info.compBsay})
 /* 映射toCompB方法到props中 */
 const CompAmapDispatchToProps = dispatch => ({ toCompB: (mes) => dispatch({ type: 'SET', payload: { compAsay: mes } }) })
 /* connect包装组件A */
@@ -94,8 +99,8 @@ export const CompA = connect(CompAMapStateToProps, CompAmapDispatchToProps)((Com
 class ComponentB extends React.Component {
   state={ compBsay:'' }
   handleToA=()=>{
-     this.props.compAsay.compBsay = 111111
-     this.props.dispatch({ type: 'SET', payload: { info: {...this.props.compAsay} } })
+    // this.props.compAsay.compBsay = 111111
+    this.props.dispatch({ type: 'SET', payload: { compBsay:this.state.compBsay } })
   }
   render() {
     return <div className="box" >
@@ -112,7 +117,7 @@ class ComponentB extends React.Component {
 const CompBMapStateToProps = state => ({ compAsay: state.info })
 export const CompB =  connect(CompBMapStateToProps)(ComponentB)
 
-/* 共享数据 */
+/* 共享数据       */
 function Index() {
   return <div>
     <CompA />
